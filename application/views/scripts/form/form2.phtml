@@ -1,0 +1,88 @@
+<html lang="en-US" ng-app="myApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Test Forms</title>
+    <script id="angularScript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script id="angularScript" src="//code.angularjs.org/1.4.8/angular-resource.js"></script>
+    <script id="angularScript" src="//code.angularjs.org/1.4.8/angular-messages.js"></script>
+    <script id="angularScript" src="/dist/angular-notify.min.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Montserrat:700|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/gridism.css">
+    <link rel="stylesheet" href="/dist/angular-notify.min.css">
+
+</head>
+<body>
+<script>
+
+
+
+    angular.module('myApp', ['ngResource','ngMessages','cgNotify'])
+        .service('myService', function ($resource) {
+
+            var FormStorage = $resource('/form/storage', {},{});
+
+            this.getList = function(form_name) {
+                return FormStorage.query({form_name: form_name});
+            };
+            this.save = function(form_name, data_object) {
+                return FormStorage.save({ form_name: form_name, form_data : data_object}) ;
+            };
+            this.load = function(form_name, id) {
+                return FormStorage.get({form_name: form_name, id: id});
+            };
+
+        })
+        .controller('MyController', ["$scope", "$resource", "myService", "notify", function($scope, $resource, myService, notify ) {
+
+            var banerDuration = 1600;
+            $scope.master = {};
+
+            $scope.formList = myService.getList('second_form');
+
+            $scope.loadform = function (id) {
+
+                $scope.user = myService.load('second_form', id);
+                notify( { message:"Formularz został przesłany", duration: banerDuration}  );
+
+            }
+            $scope.addszkic = function(user) {
+
+                myService.save('second_form', user);
+                $scope.reset();
+                notify( { message:"Szkic został zapisany!", duration: banerDuration}  );
+
+            };
+            $scope.reset = function() {
+                $scope.user = angular.copy($scope.master);
+                $scope.formList = myService.getList('second_form');
+            };
+        }]);
+
+</script>
+
+<div class="grid" ng-controller="MyController">
+    <div class="unit one-third">
+        <pre>Form 2</pre>
+    </div>
+    <div class="unit one-third">
+         <?php echo $this->form ?>
+    </div>
+    <div class="unit one-third">
+
+            <ul class="unstyled">
+                <li ng-show="formList" ng-repeat="form in formList">
+                    <label>{{form.create_date}}</label>
+                    <button type="button" ng-click="loadform(form.id)" /> Load </button>
+                </li>
+            </ul>
+
+        <pre></pre>
+    </div>
+</div>
+
+
+
+</body>
+</html>
+
